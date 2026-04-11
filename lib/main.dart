@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:test103/BMI/bmi_screen.dart';
 import 'package:test103/about/about_Screen.dart';
+import 'package:test103/auth/Password_reset/reset_password.dart';
+import 'package:test103/auth/sign_in/sign_in.dart';
+import 'package:test103/auth/sign_up/sign_up.dart';
 import 'package:test103/home/HomeScreen.dart';
 import 'package:test103/profile/profile_screen.dart';
 import 'package:test103/user_info/user_info.dart';
+import 'package:test103/utils/app_routes.dart';
 
 void main() {
   runApp(const FoodSnapApp());
@@ -17,6 +21,17 @@ class FoodSnapApp extends StatelessWidget {
     return MaterialApp(
       title: 'CalCount',
       debugShowCheckedModeBanner: false,
+
+        initialRoute: AppRoutes.home,
+
+        routes: {
+          AppRoutes.signUp: (context) => SignupScreen(),
+          AppRoutes.signIn: (context) => SignIn(),
+          AppRoutes.resetPassword: (context) => ResetPasswordScreen(),
+          AppRoutes.profile: (context) => ProfileScreen(),
+          AppRoutes.about: (context) => AboutScreen(),
+        },
+
       theme: ThemeData(
         primaryColor: const Color(0xFF667EEA),
         scaffoldBackgroundColor: Colors.white,
