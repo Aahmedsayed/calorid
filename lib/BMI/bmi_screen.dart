@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test103/services/api_service.dart';
 
 class BMICalculatorScreen extends StatefulWidget {
   final double? height;
@@ -26,6 +27,9 @@ class _BMICalculatorScreenState extends State<BMICalculatorScreen> {
   int dailyDeficit = 0;
   int weeksToGoal = 0;
   String exerciseDays = '3-4 days';
+  
+  bool _isLoading = false;
+  final ApiService _apiService = ApiService();
 
   @override
   void initState() {
@@ -48,28 +52,39 @@ class _BMICalculatorScreenState extends State<BMICalculatorScreen> {
     targetWeightController.text = '65';
   }
 
-  void calculateBMI() {
-    double heightM = double.parse(heightController.text) / 100;
-    double weight = double.parse(currentWeightController.text);
-
+  Future<void> calculateBMI() async {
     setState(() {
-      bmi = weight / (heightM * heightM);
-
-      if (bmi < 18.5) {
-        bmiCategory = 'Underweight';
-      } else if (bmi < 25) {
-        bmiCategory = 'Normal Weight';
-      } else if (bmi < 30) {
-        bmiCategory = 'Overweight';
-      } else {
-        bmiCategory = 'Obese';
-      }
-
-      dailyCalories = 1850;
-      dailyDeficit = -500;
-      weeksToGoal = 10;
-      exerciseDays = '3-4 days';
+      _isLoading = true;
     });
+
+    try {
+      final response = await _apiService.calculateBMI({
+        "gender": "male", // default or select from ui
+        "age": int.parse(ageController.text),
+        "heightCm": double.parse(heightController.text),
+        "weightKg": double.parse(currentWeightController.text),
+        "activityLevel": "moderate"
+      });
+
+      if (response.statusCode == 200) {
+        setState(() {
+          bmi = response.data['bmi']?.toDouble() ?? 0.0;
+          bmiCategory = response.data['category'] ?? 'Unknown';
+          dailyCalories = response.data['dailyCalories']?.toInt() ?? 2000;
+          dailyDeficit = -500; // You can fetch this from deficit API if needed
+          weeksToGoal = 10;
+          exerciseDays = exerciseFrequency;
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to calculate BMI using API')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -300,7 +315,7 @@ class _BMICalculatorScreenState extends State<BMICalculatorScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: calculateBMI,
+                              onPressed: _isLoading ? null : calculateBMI,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF667EEA),
                                 foregroundColor: Colors.white,
@@ -311,7 +326,9 @@ class _BMICalculatorScreenState extends State<BMICalculatorScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              child: const Text(
+                              child: _isLoading 
+                                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white))
+                                : const Text(
                                 'Calculate',
                                 style: TextStyle(
                                   fontSize: 16,
