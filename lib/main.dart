@@ -8,9 +8,22 @@ import 'package:test103/home/HomeScreen.dart';
 import 'package:test103/profile/profile_screen.dart';
 import 'package:test103/user_info/user_info.dart';
 import 'package:test103/utils/app_routes.dart';
+import 'package:provider/provider.dart';
+import 'package:test103/providers/auth_provider.dart';
+import 'package:test103/providers/profile_provider.dart';
+import 'package:test103/auth_wrapper.dart';
 
 void main() {
-  runApp(const FoodSnapApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
+      ],
+      child: const FoodSnapApp(),
+    ),
+  );
 }
 
 class FoodSnapApp extends StatelessWidget {
@@ -22,14 +35,13 @@ class FoodSnapApp extends StatelessWidget {
       title: 'CalCount',
       debugShowCheckedModeBanner: false,
 
-        initialRoute: AppRoutes.home,
-
         routes: {
-          AppRoutes.signUp: (context) => SignupScreen(),
-          AppRoutes.signIn: (context) => SignIn(),
-          AppRoutes.resetPassword: (context) => ResetPasswordScreen(),
-          AppRoutes.profile: (context) => ProfileScreen(),
-          AppRoutes.about: (context) => AboutScreen(),
+          AppRoutes.home: (context) => const MainNavigationScreen(),
+          AppRoutes.signUp: (context) => const SignupScreen(),
+          AppRoutes.signIn: (context) => const SignIn(),
+          AppRoutes.resetPassword: (context) => const ResetPasswordScreen(),
+          AppRoutes.profile: (context) => const ProfileScreen(),
+          AppRoutes.about: (context) => const AboutScreen(),
         },
 
       theme: ThemeData(
@@ -37,7 +49,7 @@ class FoodSnapApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.white,
         fontFamily: 'Poppins',
       ),
-      home: const MainNavigationScreen(),
+      home: const AuthWrapper(),
     );
   }
 }

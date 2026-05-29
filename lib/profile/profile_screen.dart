@@ -1,44 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:test103/providers/profile_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final profileProvider = Provider.of<ProfileProvider>(context);
+    final profileData = profileProvider.profileData;
+    
+    final fullName = profileData?['fullName'] ?? 'User';
+    final email = profileData?['email'] ?? 'N/A';
+    final age = profileData?['age']?.toString() ?? '-';
+    final height = profileData?['heightCm']?.toString() ?? '-';
+    final weight = profileData?['currentWeightKg']?.toString() ?? '-';
+    final targetWeight = profileData?['targetWeightKg']?.toString() ?? '-';
+    final gender = profileData?['gender'] ?? '-';
+    final dailyCalories = profileData?['dailyCalorieGoal']?.toString() ?? '-';
+    final dailyDeficit = profileData?['dailyDeficit']?.toString() ?? '-';
+    final timeToGoal = profileData?['timeToGoalWeeks']?.toString() ?? '-';
+    final weeklyExercise = profileData?['exerciseDays']?.toString() ?? '-';
+    final weightLossPace = profileData?['weightLossPace'] ?? '-';
+    final bmi = profileData?['profileExtras']?['bmiCategory'] ?? '-'; // using the category or you can calculate
+
     return Scaffold(
       backgroundColor: const Color(0xffF4F6FA),
       body: Container(
         child: SingleChildScrollView(
           child: Column(
             children: [
-              _buildHeader(context),
+              _buildHeader(context, fullName, email, weight, targetWeight, bmi),
               const SizedBox(height: 16),
               _buildInfoCard(
                 title: "Personal Information",
                 icon: Icons.person_outline,
-                items: const [
-                  _InfoRow("Age", "23 years"),
-                  _InfoRow("Height", "185 cm"),
-                  _InfoRow("Gender", "Male"),
+                items: [
+                  _InfoRow("Age", "$age years"),
+                  _InfoRow("Height", "$height cm"),
+                  _InfoRow("Gender", gender),
                 ],
               ),
               _buildInfoCard(
                 title: "Health Metrics",
                 icon: Icons.monitor_heart_outlined,
-                items: const [
-                  _InfoRow("Current Weight", "70 kg"),
-                  _InfoRow("Target Weight", "65 kg"),
-                  _InfoRow("Daily Calorie Goal", "1,850 kcal"),
-                  _InfoRow("Daily Deficit", "-500 kcal"),
+                items: [
+                  _InfoRow("Current Weight", "$weight kg"),
+                  _InfoRow("Target Weight", "$targetWeight kg"),
+                  _InfoRow("Daily Calorie Goal", "$dailyCalories kcal"),
+                  _InfoRow("Daily Deficit", "$dailyDeficit kcal"),
                 ],
               ),
               _buildInfoCard(
                 title: "Exercise Routine",
                 icon: Icons.fitness_center_outlined,
-                items: const [
-                  _InfoRow("Weekly Exercise", "3-4 days"),
-                  _InfoRow("Weight Loss Pace", "Moderate (0.5 kg/week)"),
-                  _InfoRow("Estimated Time to Goal", "10 weeks"),
+                items: [
+                  _InfoRow("Weekly Exercise", "$weeklyExercise days"),
+                  _InfoRow("Weight Loss Pace", weightLossPace),
+                  _InfoRow("Estimated Time to Goal", "$timeToGoal weeks"),
                 ],
               ),
               _buildProgressCard(),
@@ -75,7 +94,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, String name, String email, String weight, String goalWeight, String bmi) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 40, 20, 30),
@@ -114,26 +133,26 @@ class ProfileScreen extends StatelessWidget {
             child: Icon(Icons.person_4, size: 40, color: Color(0xff2F6FED)),
           ),
           const SizedBox(height: 10),
-          const Text(
-            "Mostafa Ayman",
-            style: TextStyle(
+          Text(
+            name,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            "moayman11@email.com",
-            style: TextStyle(color: Colors.white70),
+          Text(
+            email,
+            style: const TextStyle(color: Colors.white70),
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              _StatCard("70", "Weight (kg)"),
-              _StatCard("24.2", "BMI"),
-              _StatCard("65", "Goal (kg)"),
+            children: [
+              _StatCard(weight, "Weight (kg)"),
+              _StatCard(bmi, "BMI Status"),
+              _StatCard(goalWeight, "Goal (kg)"),
             ],
           )
         ],
@@ -276,14 +295,16 @@ class _StatCard extends StatelessWidget {
             value,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(
             label,
             style: const TextStyle(color: Colors.white70, fontSize: 12),
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

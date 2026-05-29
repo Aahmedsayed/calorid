@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:test103/BMI/dmi_result.dart';
+import 'package:provider/provider.dart';
+import 'package:test103/providers/profile_provider.dart';
+import 'package:test103/services/api_service.dart';
+import 'package:test103/BMI/dmi_result.dart'; // From original code
 
 class UserInfoScreen extends StatefulWidget {
   const UserInfoScreen({Key? key}) : super(key: key);
@@ -13,6 +16,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   double height = 175;
   int weight = 70;
   int age = 25;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +116,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                                     ),
                                     child: Column(
                                       children: [
-                                        Image.asset('assets/images/female.png'),
+                                        Image.asset('assets/images/female.png', width: 60, height: 60,),
                                         const SizedBox(height: 8),
                                         Text(
                                           'Female',
@@ -311,8 +315,28 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // Calculate BMI
+                        onPressed: _isLoading ? null : () async {
+                          setState(() {
+                            _isLoading = true;
+                          });
+
+                          // Update profile in backend
+                          final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+                          await profileProvider.updateProfile({
+                            "gender": selectedGender.toLowerCase(),
+                            "age": age,
+                            "heightCm": height,
+                            "weightKg": weight,
+                            "targetWeightKg": weight, // assuming maintain
+                            "goal": "maintain",
+                            "activityLevel": "sedentary"
+                          });
+
+                          setState(() {
+                            _isLoading = false;
+                          });
+
+                          // Calculate BMI locally or fetch from provider
                           double heightM = height / 100;
                           double bmi = weight / (heightM * heightM);
                           String bmiCategory;
@@ -327,18 +351,20 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                             bmiCategory = 'Obese';
                           }
 
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => BMIResultScreen(
-                                bmi: bmi,
-                                bmiCategory: bmiCategory,
-                                height: height,
-                                weight: weight.toDouble(),
-                                age: age,
+                          if (mounted) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BMIResultScreen(
+                                  bmi: bmi,
+                                  bmiCategory: bmiCategory,
+                                  height: height,
+                                  weight: weight.toDouble(),
+                                  age: age,
+                                ),
                               ),
-                            ),
-                          );
+                            );
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
@@ -348,8 +374,10 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
-                          'CALCULATE MY BMI',
+                        child: _isLoading 
+                           ? const CircularProgressIndicator()
+                           : const Text(
+                          'SAVE & CALCULATE MY BMI',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
